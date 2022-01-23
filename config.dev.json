@@ -1,0 +1,7 @@
+{
+  "apiHost": "https://obp-api.mikemos.co",
+  "consumerKey": "gtaqhoqin5etgt2tsav0jta5vt4hq4gcnufppq5a",
+  "consumerSecret": "1u4jbsiwsjpivvf24xory5qh1fcqtm2bhju0dfhw",
+  "redirectUrl": "http://127.0.0.1:8085/callback",
+  "redirectUrlApp": "/signed_in"
+}

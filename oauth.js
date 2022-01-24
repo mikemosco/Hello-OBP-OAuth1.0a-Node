@@ -526,30 +526,15 @@ app.get("/createEntitlements", function (req, res) {
 });
 
 app.get("/logout", (req, res) => {
+  const cookie = 'connect.sid';
   const url = `${apiHost}/user_mgt/logout?redirect=http://bcr.ids-demos.com/obelisco`;
-  console.log(`URL: ${url}`);
+  let options = {
+    path: '/',
+    httpOnly: true,
+  };
 
-  consumer.get(
-    url,
-    req.session.oauthAccessToken,
-    req.session.oauthAccessTokenSecret,
-    (error, data, response) => {
-      console.log(
-        "---------------------------------------------------------------------------"
-      );
-      console.log(error);
-      console.log(
-        "---------------------------------------------------------------------------"
-      );
-      console.log(data);
-      console.log(
-        "---------------------------------------------------------------------------"
-      );
-      console.log(response);
-
-      res.json({}).end();
-    }
-  );
+  res.cookie(cookie, '', options);
+  res.redirect(url);
 });
 
 

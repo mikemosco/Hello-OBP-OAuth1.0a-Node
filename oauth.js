@@ -32,7 +32,8 @@ var oauth = require('oauth');
 
 var app = express();
 
-var env = process.env.ENV || "dev";
+const env = process.env.ENV || "dev";
+const apiVersion = process.env.API_VERSION || '4.0.0';
 
 /////////////////////////////////////
 // OAuth Config:
@@ -46,8 +47,12 @@ var config = require(`./config.${env}.json`);
 
 var pug = require("pug");
 
+console.info('ENV: ', env);
+console.info('API_VERSION: ', apiVersion);
+
 app.use(function (req, res, next) {
   console.log(`${req.method} ${req.url}`);
+  console.log(req.session);
   console.log(
     "================================================================================================================================"
   );
@@ -108,6 +113,25 @@ app.use(
   })
 );
 
+
+app.get(`/obp/*`, (req, res) => {
+  const url = apiHost + req.url;
+
+  consumer.get(
+    url,
+    req.session.oauthAccessToken,
+    req.session.oauthAccessTokenSecret,
+    (error, data, response) => {
+      try {
+        res.type('json').status(200).send(data);
+      } catch (exception) {
+        onException(res, exception, data);
+      }
+    }
+  );
+});
+
+
 app.get("/connect", function (req, res) {
   consumer.getOAuthRequestToken(function (
     error,
@@ -166,8 +190,9 @@ app.get("/signed_in", function (req, res) {
 });
 
 app.get("/getCurrentUser", function (req, res) {
+  console.log(req.session);
   consumer.get(
-    apiHost + "/obp/v3.1.0/users/current",
+    apiHost + `/obp/v${apiVersion}/users/current`,
     req.session.oauthAccessToken,
     req.session.oauthAccessTokenSecret,
     function (error, data, response) {
@@ -193,7 +218,7 @@ function apiGet(req, res) {
 
 app.get("/getMyAccountsJson", function (req, res) {
   consumer.get(
-    apiHost + "/obp/v3.0.0/my/accounts",
+    apiHost + `/obp/v${apiVersion}/my/accounts`,
     req.session.oauthAccessToken,
     req.session.oauthAccessTokenSecret,
     function (error, data, response) {
@@ -214,7 +239,7 @@ app.get("/getMyAccounts", function (req, res) {
   var title = "Accounts";
 
   consumer.get(
-    apiHost + "/obp/v3.0.0/my/accounts",
+    apiHost + `/obp/v${apiVersion}/my/accounts`,
     req.session.oauthAccessToken,
     req.session.oauthAccessTokenSecret,
     // When the GET request completes, we call the following function with the data we got back:
@@ -247,7 +272,7 @@ app.get("/createTransactionRequest", function (req, res) {
   var html = pug.renderFile(template, options);
 
   consumer.get(
-    apiHost + "/obp/v3.0.0/my/accounts",
+    apiHost + `/obp/v${apiVersion}/my/accounts`,
     req.session.oauthAccessToken,
     req.session.oauthAccessTokenSecret,
     function (error, data, response) {
@@ -297,7 +322,7 @@ app.post("/createTransactionRequest", urlencodedParser, function (req, res) {
 
   var postUrl =
     apiHost +
-    "/obp/v3.1.0/banks/" +
+    `/obp/v${apiVersion}/banks/` +
     fromBankId +
     "/accounts/" +
     fromAccountId +
@@ -373,7 +398,7 @@ app.get("/loadCustomers", function (req, res) {
   );
 
   customers.forEach(function processCustomer(customer) {
-    var usersByEmailUrl = apiHost + "/obp/v3.1.0/users/" + customer.email;
+    var usersByEmailUrl = apiHost + `/obp/v${apiVersion}/users/${customer.email}`;
     console.log("url to call: " + usersByEmailUrl);
 
     // get user by email
@@ -413,7 +438,7 @@ app.get("/loadCustomers", function (req, res) {
         console.log("customerToPost: " + JSON.stringify(customerToPost));
 
         var postCustomerUrl =
-          apiHost + "/obp/v3.1.0/banks/" + customer.bank_id + "/customers";
+          apiHost + `/obp/v${apiVersion}/banks/${customer.bank_id}/customers`;
 
         console.log("postCustomerUrl: " + postCustomerUrl);
 
@@ -471,7 +496,7 @@ app.get("/createEntitlements", function (req, res) {
   var userId = miscConfig.userId;
 
   banks.forEach(function processCustomer(bank) {
-    var postUrl = apiHost + "/obp/v3.1.0/users/" + userId + "/entitlements";
+    var postUrl = apiHost + `/obp/v${apiVersion}/users/${userId}/entitlements`;
     console.log("url to call: " + postUrl);
 
     //var postBody = {"bank_id":bank.id, "role_name":"CanCreateCustomer"}

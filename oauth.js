@@ -32,6 +32,7 @@ var oauth = require('oauth');
 
 var app = express();
 
+const baseContext = process.env.BASE_CONTEXT || '';
 const env = process.env.ENV || "dev";
 const apiVersion = process.env.API_VERSION || '4.0.0';
 
@@ -556,7 +557,7 @@ app.get("/logout", (req, res) => {
 
 
 app.get('*', function(req, res){
-  res.redirect('/connect');
+  res.redirect(baseContext + '/connect');
 });
 
 app.listen(port);
